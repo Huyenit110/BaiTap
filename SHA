@@ -1,0 +1,70 @@
+package maHoa;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Formatter;
+
+public class SHAExample {
+
+  public static void main(String[] args) {
+
+    String messageFilePath = "message.txt";
+    String folderName = "hashed_messages";
+    
+    String message = readFile(messageFilePath);
+    if (message == null) {
+      System.out.println("Khong the doc file message!");
+      return;
+    }
+    File directory = new File(folderName);
+    if (!directory.exists()) {
+      if (!directory.mkdir()) {
+        System.out.println("Tạo thư mục thất bại!");
+        return;
+      }
+    }
+
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] encodedHash = digest.digest(message.getBytes(StandardCharsets.UTF_8));
+      String hash = bytesToHex(encodedHash);
+
+      File hashFile = new File(directory, messageFilePath + ".sha256");
+      FileWriter writer = new FileWriter(hashFile);
+      writer.write(hash);
+      writer.close();
+
+      System.out.println("Mã băm được tạo và lưu tại: " + hashFile.getAbsolutePath());
+
+    } catch (NoSuchAlgorithmException | IOException e) {
+      System.out.println("Lỗi: " + e.getMessage());
+    }
+  }
+
+  private static String readFile(String filePath) {
+    try (FileReader reader = new FileReader(filePath)) {
+      StringBuilder content = new StringBuilder();
+      int charValue;
+      while ((charValue = reader.read()) != -1) {
+        content.append((char) charValue);
+      }
+      return content.toString();
+    } catch (IOException e) {
+      System.out.println("Lỗi đọc file: " + filePath);
+      return null;
+    }
+  }
+  private static String bytesToHex(byte[] hash) {
+    Formatter formatter = new Formatter();
+    for (byte b : hash) {
+      formatter.format("%02x", b);
+    }
+    String result = formatter.toString();
+    formatter.close();
+    return result;
+  }
+}
